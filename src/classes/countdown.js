@@ -3,9 +3,10 @@ import timesets from '../definitions/timesets';
 class Countdown {
     constructor(element, options = {}) {
         this.el = element;
-        this.to = new Date(this.el.dataset.to).getTime() || new Date(options.to).getTime() || new Date('2018/09/20 11:00').getTime();
+        this.to = new Date(this.el.dataset.to).getTime() || new Date(options.to).getTime() || new Date('2018/09/22 11:00').getTime();
         // this.from = this.el.dataset.from || options.from;
         this.interval = this.el.dataset.interval || options.interval || 1000;
+        this.template = this.el.dataset.template || options.template || '{{ days }}, {{ hours }}, {{ minutes }}, {{ seconds }}';
 
         this.available_timesets = timesets;
 
@@ -18,12 +19,12 @@ class Countdown {
             let distance = this.time_until_end();
             if (distance <= 0) clearInterval(interval);
 
-            const timesets = this.used_timesets(this.available_timesets);
+            const timesets = this.used_timesets(this.template, this.available_timesets);
 
-            let output = '';
+            let output = this.template;
             timesets.forEach(timeset => {
                 const total = Math.floor(distance / timeset.period);
-                output += `${total} ${timeset.plural}, `;
+                output = output.replace(new RegExp(`{{ ?${timeset.plural} ?}}`), this.translate_timeset(timeset, total));
                 distance = distance % timeset.period;
             });
 
@@ -35,10 +36,20 @@ class Countdown {
         return this.to - new Date().getTime();
     }
 
-    used_timesets(timesets) {
+    translate_timeset(timeset, quantity) {
+        let translation = timeset.singular;
+        if (quantity !== 1) translation = timeset.plural || translation + 's';
+        return `${quantity} ${translation}`;
+    }
+
+    used_timesets(template, timesets) {
+        const used_templates = template.match(/{{ ?[a-zA-Z]* ?}}/g);
         let used_timesets = [];
-        timesets.forEach(timeset => {
-            used_timesets.push(timeset);
+
+        used_templates.forEach(template => {
+            template = template.replace(/{{ ?/g, '').replace(/ ?}}/g, '');
+            const timeset = timesets.filter(timeset => timeset.plural === template)[0];
+            if (timeset) used_timesets.push(timeset);
         });
         return this.order_array(used_timesets);
     }
