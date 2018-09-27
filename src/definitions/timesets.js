@@ -11,12 +11,12 @@ const timesets = [
         period: 1000,
         unit: 's'
     },
-    // {
-    //     singular: 'minute',
-    //     plural: 'minutes',
-    //     period: 1000 * 60,
-    //     unit: 'm'
-    // },
+    {
+        singular: 'minute',
+        plural: 'minutes',
+        period: 1000 * 60,
+        unit: 'm'
+    },
     {
         singular: 'hour',
         plural: 'hours',
